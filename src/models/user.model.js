@@ -29,7 +29,7 @@ const userSchema = new Schema({
         type: String, //cloudnary url
         required: true,
     },
-    coverimage :{
+    coverImage :{
         type: String, //cloudnary url
     },
     watchhistory :[
@@ -52,18 +52,18 @@ const userSchema = new Schema({
 }
 )
 
-userSchema.pre("save", async function (next){
+userSchema.pre("save", async function (){
     if(! this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 10)
-  next()
+//   next()
 })
 
-userSchema.methods.isPasswordCorrect = async = function (password) {
-    return await bcrypt.compare(password, this.password)
+userSchema.methods.isPasswordCorrect = async function (password) {
+    return  await bcrypt.compare(password, this.password)
 }
 
 userSchema.methods.generateAccessToken = function(){
-   return jwtsign(
+   return jwt.sign(
         {
             _id: this._id,
             email: this.email,
@@ -77,7 +77,7 @@ userSchema.methods.generateAccessToken = function(){
     )
 }
 userSchema.methods.generateRefreshToken = function(){
-    return jwtsign(
+    return jwt.sign(
         {
             _id: this._id,
             

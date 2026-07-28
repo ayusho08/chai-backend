@@ -1,26 +1,30 @@
 import { v2 as cloudinary } from "cloudinary"
 
-import fs from "fs" // file ko read write remove yahi sv 
-
-cloudinary.config({ 
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
-  api_key: process.env.CLOUDINARY_API_KEY, 
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import fs from "fs" // file ko read write remove yahi sv
 
 const uploadOnCloudinary = async (localFilePath) => {
     try{
         if(!localFilePath) return null;
-    
+
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+
 
     const response = await cloudinary.uploader.upload(localFilePath, {
         resource_type:"auto"
     })
-    console.log("File uploaded", response.url);
+    // console.log("File uploaded", response.url);
+    fs.unlinkSync(localFilePath)
     return response;
     }
     catch(error) {
-      fs.unlinkSync(localFilePath) //remove the locally saved temporary file as the upload operation got failed 
+      console.error("CLOUDINARY DETAILED UPLOAD ERROR:", error); 
+      if (fs.existsSync(localFilePath)) {
+          fs.unlinkSync(localFilePath);
+      } //remove the locally saved temporary file as the upload operation got failed 
       return null
     }
 }
