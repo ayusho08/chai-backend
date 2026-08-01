@@ -4,36 +4,36 @@ const videoSchema = new Schema(
     {
       videoFile : {
         type: String,
-        requried: true,
+        required: true,
 
       },
       thumbnail : {
         type: String,
-        requried: true,
-        
+        required: true,
+
       },
       title : {
         type: String,
-        requried: true,
-        
+        required: true,
+
       },
       description : {
         type: String,
-        requried: true,
-        
+        required: true,
+
       },
       duration : {
         type: Number,
-        requried: true,
-        
+        required: true,
+
       },
       views : {
         type: Number,
         default: 0
-        
+
       },
       isPublished : {
-        type: boolean,
+        type: Boolean,
         default: true,
         
       },

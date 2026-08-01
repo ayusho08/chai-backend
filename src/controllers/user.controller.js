@@ -160,24 +160,24 @@ try {
       secure: true
     }
   
-    const {accessToken,newRefreshToken} = await generateAccessAndRefreshTokens(user._id)
-  
+    const {accessToken, refreshToken: newRefreshToken} = await generateAccessAndRefreshTokens(user._id)
+
     return res
     .status(200)
-    .cookie("acessToken", accessToken,options)
-    .cookie("refreshToken", newRrefreshToken,options)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", newRefreshToken, options)
     .json(
       new ApiResponse(
         200,
         {
-          accessToken,refreshToken: newRrefreshToken
+          accessToken, refreshToken: newRefreshToken
         },
         "access token refreshed"
       )
     )
-  
+
 } catch (error) {
-  throw new ApiError(402, error?.message || "refreshtokendoentrefreshed")
+  throw new ApiError(401, error?.message || "Invalid or expired refresh token")
 }
 })
 
@@ -193,13 +193,13 @@ const changeCurrentPassword = asyncHandler( async(req,res)=>{
   await user.save({validateBeforeSave: false})
   return res
   .status(200)
-  .json(new ApiResponse(200),{},"Password Changed Successfully")
+  .json(new ApiResponse(200, {}, "Password Changed Successfully"))
 })
 
 const getCurrentUser = asyncHandler(async(req,res)=>{
   return res
   .status(200)
-  .json(200, req.user, "current user fetched successfully")
+  .json(new ApiResponse(200, req.user, "current user fetched successfully"))
 })
 
 const updateAccountDetails = asyncHandler(async(req,res)=>{
@@ -209,7 +209,7 @@ const updateAccountDetails = asyncHandler(async(req,res)=>{
     throw new ApiError(400,"required fields")
   }
 
-  const user = User.findByIdAndUpdate(
+  const user = await User.findByIdAndUpdate(
     req.user?._id,
     {
       $set: {
@@ -218,10 +218,10 @@ const updateAccountDetails = asyncHandler(async(req,res)=>{
     },
     {new: true}
   ).select("-password")
-  
+
   return res
   .status(200)
-  .json(new ApiResponse(200, "Account details Updated"))
+  .json(new ApiResponse(200, user, "Account details Updated"))
   
 })
 
@@ -247,10 +247,10 @@ const updateUserAvatar = asyncHandler(async(req,res)=>{
       new: true
     }
   ).select("-password")
-   return res
+  return res
   .status(200)
   .json(
-    new ApiResponse(200, "avatar Image updated Successfully")
+    new ApiResponse(200, user, "avatar Image updated Successfully")
   )
 })
 
@@ -280,7 +280,7 @@ const updateUserCoverImage = asyncHandler(async(req,res)=>{
   return res
   .status(200)
   .json(
-    new ApiResponse(200, "coverImage updated Successfully")
+    new ApiResponse(200, user, "coverImage updated Successfully")
   )
 
 })
@@ -310,7 +310,7 @@ const getUserChannelProfile = asyncHandler(async(req,res)=>{
         from: "subsriptions",
         localField: "_id",
         foreignField: "subscriber",
-        as: "subscriberdTo"
+        as: "subscribedTo"
       }
     },
     {
@@ -322,7 +322,7 @@ const getUserChannelProfile = asyncHandler(async(req,res)=>{
           $size: "$subscribedTo"
         },
         isSubscribed : {
-          $cons: {
+          $cond: {
             if: {$in : [req.user?._id, "$subscribers.subscriber"]},
             then : true,
             else : false
@@ -359,13 +359,13 @@ const getWatchHistory = asyncHandler(async(req,res)=>{
   const user = await User.aggregate([
     {
       $match: {
-        _id: new mongoose.Types.ObjectId(req.user_id)
+        _id: new mongoose.Types.ObjectId(req.user._id)
       }
     },
     {
       $lookup: {
         from: "videos",
-        localField: "watchHistory.video",
+        localField: "watchHistory",
         foreignField: "_id",
         as: "watchHistory",
         pipeline: [

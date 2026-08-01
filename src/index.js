@@ -10,6 +10,10 @@ const requiredEnvVars = [
   "ACCESS_TOKEN_EXPIRY",
   "REFRESH_TOKEN_SECRET",
   "REFRESH_TOKEN_EXPIRY",
+  "CORS_ORIGIN",
+  "CLOUDINARY_CLOUD_NAME",
+  "CLOUDINARY_API_KEY",
+  "CLOUDINARY_API_SECRET",
 ]
 const missingVars = requiredEnvVars.filter((v) => !process.env[v])
 if (missingVars.length > 0) {
